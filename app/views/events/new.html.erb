@@ -1,0 +1,106 @@
+<div id="event_form" style="float:left; width:15%">
+  <h1>New Event</h1>
+
+  <%= render 'form' %>
+</div>
+
+<div id="significant_events" style="float:left">
+  <table>
+    <tbody>
+      <% Person.all.each do |person| %>
+        <tr>
+          <td><%= person.name %>
+          <% person.victim_events.each do |victim_event| %>
+            <td>
+              <% if ['Disrespect', 'Ceiling'].include? victim_event.event_type.description %>
+                <%= victim_event.killer.first_initial %>
+                <%= image_tag(victim_event.image_path, size: "20x30") %>
+              <% else %>
+                <%= image_tag(victim_event.image_path, size: "30x30") %>
+              <% end %>
+            </td>
+          <% end %>
+        </tr>
+      <% end %>
+  </table>
+</div>
+
+<div id="totals", style="float:right">
+  <table>
+    <thead>
+      <tr>
+        <th>Person</th>
+        <th>Kills</th>
+        <th>Deaths</th>
+        <th>Ratio</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% Person.all.each do |person| %>
+        <tr>
+          <td><%= person.name %></td>
+          <td><%= Event.where(killer: person).count %></td>
+          <td><%= Event.where(victim: person).count %></td>
+          <td><%= (Event.where(killer: person).count.to_d / Event.where(victim: person).count.to_d).round(2) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div id="container" style="width:100%; height:400px;">
+</div>
+
+<script>
+  $(function() {
+    var myChart = Highcharts.chart('container', {
+      chart: {
+        type: 'heatmap'
+      },
+
+      title: {
+        text: 'Heat Map'
+      },
+
+      xAxis: {
+        categories: <%= raw @names %>,
+        labels: {
+          enabled: true
+        },
+        title: {
+          text: 'Victim'
+        }
+      },
+
+      yAxis: {
+        categories: <%= raw @names %>,
+        labels: {
+          enabled: true
+        },
+        title: {
+          text: 'Killer'
+        }
+      },
+
+      colorAxis: {
+          min: 0,
+          minColor: '#a0c8ef',
+          max: 17,
+          // minColor: '#FFFFFF',
+          maxColor: '#ea0404'
+          // maxColor: Highcharts.getOptions().colors[0]
+      },
+
+      series: [{
+        name: 'Kills',
+        borderWidth: 1,
+        data: <%= @heatmap_data %>,
+        dataLabels: {
+          enabled: true,
+          color: '#000000'
+        }
+      }]
+    });
+  });
+</script>
+
